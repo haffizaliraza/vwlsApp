@@ -1,21 +1,30 @@
 import csv
+import pandas as pd
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
-html = urlopen("https://en.wikipedia.org/wiki/Comparison_of_programming_languages")
-soup = BeautifulSoup(html, "html.parser")
-table = soup.findAll("table", {"class":"wikitable"})[0]
-rows = table.findAll("tr")
+# Define the URL
+url = "https://en.wikipedia.org/wiki/Comparison_of_programming_languages"
 
-with open("language.csv", "wt+", newline="") as f:
-    writer = csv.writer(f)
-    for i in rows:
-        row = []
-        for cell in i.findAll(["td", "th"]):
-            row.append(cell.get_text())
-        writer.writerow(row)
-   
-  
-import pandas as pd
-a = pd.read_csv("language.csv")
-a.head()
+# Create a function to scrape and write data to a CSV file
+def scrape_and_write_to_csv(url, csv_filename):
+    html = urlopen(url)
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table", {"class": "wikitable"})
+    rows = table.findAll("tr")
+
+    with open(csv_filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        for row in rows:
+            cells = row.find_all(["td", "th"])
+            writer.writerow([cell.get_text(strip=True) for cell in cells])
+
+# Define the CSV filename
+csv_filename = "language.csv"
+
+# Scrape and write the data to the CSV file
+scrape_and_write_to_csv(url, csv_filename)
+
+# Read the CSV file using pandas
+df = pd.read_csv(csv_filename)
+print(df.head())
